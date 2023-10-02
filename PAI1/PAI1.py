@@ -38,5 +38,27 @@ def hashFiles(path, db_path):
     
     return file_list
 
-file_list = hashFiles(directorio, directorioDB)
-print("Hashes calculados y almacenados en la base de datos 'hashes.db'.")
+
+
+def compareHashes(db_path):
+    conn = sqlite3.connect(db_path)
+    
+    try:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT file_path, hash_value FROM hashes")
+            rows = cursor.fetchall()
+            for row in rows:
+                cursor.execute("SELECT file_path, hash_value FROM hashes WHERE hash_value = ?", (row[1],))
+                rows = cursor.fetchall()
+                if len(rows) > 1:
+                    print("Los siguientes archivos son iguales:")
+                    for row in rows:
+                        print(row[0])
+                    print()
+    except sqlite3.Error as e:
+        print("Error:", e)
+    finally:
+        conn.close()
+
+compareHashes(directorioDB)
